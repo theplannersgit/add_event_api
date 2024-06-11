@@ -12,7 +12,12 @@ const addNewEvent = async (req, res) => {
   try {
     const eventImageList = await processUploadImagesForEvent(req.files.Images);
     const coverImg = await processCoverImage(req.files.cover[0]);
-
+    if (coverImg.coverImg.error) {
+      throw new Error("Solo puedes subir imágenes en formato JPG o PNG");
+    }
+    if (eventImageList.error) {
+      throw new Error("Solo puedes subir imágenes en formato JPG o PNG");
+    }
     // usar prisma con la misma data connection, crear evento
     const eventoCreado = await prisma.evento.create({
       data: {
@@ -21,10 +26,10 @@ const addNewEvent = async (req, res) => {
         image: eventImageList.multipleImages,
       },
     });
+
     return res.status(200).json(eventoCreado);
   } catch (error) {
-    console.log(error);
-    return res.json({ error });
+    return res.status(500).json({ error });
   }
 };
 
@@ -36,7 +41,6 @@ const processCoverImage = async (file) => {
     );
     return { coverImg, status: 200 };
   } catch (error) {
-    console.log(error);
     return error;
   }
 };
@@ -48,16 +52,19 @@ const processUploadImagesForEvent = async (files) => {
         files[0].buffer,
         files[0].originalname
       );
+      if (uploadedImg.error) {
+        throw new Error("Solo puedes subir imágenes en formato JPG o PNG");
+      }
       return { uploadedImg, status: 200 };
-    }
-    // Mas de 1 imagen
-    else if (files.length > 1) {
+    } else if (files.length > 1) {
       const multipleImages = await uploadBatchImagesToS3(files);
+      if (multipleImages.includes(undefined)) {
+        throw new Error("Solo puedes subir imágenes en formato JPG o PNG");
+      }
       return { multipleImages, status: 200 };
     }
   } catch (error) {
-    console.log(error);
-    return error;
+    return { error: error.message };
   }
 };
 
