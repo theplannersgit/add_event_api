@@ -43,6 +43,7 @@ export const EditEventImageList = async (req, res) => {
     const evento = await prisma.evento.findUnique({
       where: { id: eventId },
     });
+
     if (!evento) {
       return res.status(500).json({ error: "no se encuentra el evento" });
     }

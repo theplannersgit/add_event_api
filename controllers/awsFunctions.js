@@ -55,13 +55,10 @@ export async function uploadImageToS3Bucket(bufferFile, imgName) {
 
 export async function uploadBatchImagesToS3(fileList) {
   try {
-    const BATCH_SIZE = 5; // Número de imágenes a procesar a la vez
     let imageListUrls = [];
 
-    for (let i = 0; i < fileList.length; i += BATCH_SIZE) {
-      const batch = fileList.slice(i, i + BATCH_SIZE);
-
-      const uploadPromises = batch.map(async (file) => {
+    for (let i = 0; i < fileList.length; i++) {
+      const uploadPromises = fileList.map(async (file) => {
         const imagenSubida = await uploadImageToS3Bucket(
           file.buffer,
           file.originalname
@@ -70,9 +67,8 @@ export async function uploadBatchImagesToS3(fileList) {
       });
 
       const batchResults = await Promise.all(uploadPromises);
-      imageListUrls = imageListUrls.concat(batchResults);
+      imageListUrls = batchResults;
     }
-
     return imageListUrls;
   } catch (error) {
     return { error: error.message };
