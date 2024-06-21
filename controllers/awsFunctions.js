@@ -28,14 +28,10 @@ export async function uploadImageToS3Bucket(bufferFile, imgName) {
     if (validateFile(imgName)) {
       throw new Error("Solo puedes subir imágenes en formato JPG o PNG");
     }
-    // Usamos sharp para comprimir la imagen
-    const compressedBuffer = await sharp(bufferFile)
-      .resize({ width: 800 }) // Redimensiona la imagen a un ancho máximo de 800px (ajusta según sea necesario)
-      .jpeg({ quality: 80 }) // Comprime la imagen JPEG con una calidad del 80% (ajusta según sea necesario)
-      .toBuffer();
+
     const input = {
       ACL: "public-read",
-      Body: compressedBuffer,
+      Body: bufferFile,
       Bucket: "eventosfotos",
       Key: `eventosplanners/${imgName}`,
       ContentType: "image/jpeg", // Especifica el tipo de contenido aquí
